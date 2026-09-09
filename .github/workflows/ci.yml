@@ -12,7 +12,17 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --no-audit --no-fund
-      - run: npm run build
+      - name: Build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee build.log
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://ysxmumnbhlwiylmqzjpy.supabase.co
           NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_FnFXHJqC1ddt9DYgYQDLvg_OICuYe-u
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ekatm-build-log
+          path: build.log
+          if-no-files-found: ignore
