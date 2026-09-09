@@ -1,2 +1,2 @@
-import FieldPortal from '@/components/FieldPortal';
-export default function FieldPage(){return <FieldPortal/>}
+import SimpleSurveyPortal from '@/components/SimpleSurveyPortal';
+export default function FieldPage(){return <SimpleSurveyPortal/>}
