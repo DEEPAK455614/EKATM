@@ -1,2 +1,2 @@
-import FieldOpsDashboard from '@/components/FieldOpsDashboard';
-export default function FieldOpsPage(){return <FieldOpsDashboard/>}
+import SurveyAdmin from '@/components/SurveyAdmin';
+export default function FieldOpsPage(){return <SurveyAdmin/>}
