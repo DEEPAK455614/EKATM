@@ -1,2 +1,2 @@
-import {redirect} from 'next/navigation';
-export default function Page(){redirect('/field')}
+import SimpleLanding from '@/components/SimpleLanding';
+export default function Page(){return <SimpleLanding/>}
