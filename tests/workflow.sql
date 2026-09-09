@@ -1,0 +1,49 @@
+begin;
+do $$
+declare u uuid:=gen_random_uuid(); other_u uuid:=gen_random_uuid(); a uuid:=gen_random_uuid(); admin_id uuid; f public.simple_survey_forms; doc jsonb:='{"meta":{"state":"Fake State"},"dailyLogs":[{"id":"test-day","dayNo":1,"date":"2026-09-09","findings":"Regression finding"}]}'::jsonb; denied boolean;
+begin
+ select ur.user_id into strict admin_id from public.user_roles ur join public.roles r on r.id=ur.role_id where ur.active and r.key='system_admin' limit 1;
+ insert into auth.users(id,email,raw_user_meta_data) values(u,'survey-test-'||u||'@example.invalid','{"full_name":"Survey test"}'),(other_u,'survey-test-'||other_u||'@example.invalid','{"full_name":"Other survey test"}');
+ insert into public.simple_survey_assignments(id,surveyor_id,state_name,assigned_by) values(a,u,'Regression State',admin_id);
+ perform set_config('request.jwt.claim.sub',u::text,true);
+ select * into f from public.save_simple_survey(a,doc,false,0);
+ if f.revision<>1 or f.form_data#>>'{meta,state}'<>'Regression State' then raise exception 'Initial save or authoritative State failed'; end if;
+ denied:=false;begin perform public.save_simple_survey(a,doc,false,0);exception when serialization_failure then denied:=true;end;
+ if not denied then raise exception 'Stale write accepted';end if;
+ perform set_config('request.jwt.claim.sub',other_u::text,true);
+ denied:=false;begin perform public.save_simple_survey(a,doc,false,1);exception when others then denied:=true;end;
+ if not denied then raise exception 'Another surveyor wrote this assignment';end if;
+ denied:=false;begin perform public.review_simple_survey(f.id,'reviewed','',1);exception when others then denied:=true;end;
+ if not denied then raise exception 'Surveyor reviewed a report';end if;
+ perform set_config('request.jwt.claim.sub',u::text,true);
+ select * into f from public.save_simple_survey(a,doc,true,1);
+ if f.status<>'submitted' or f.submitted_at is null then raise exception 'Submission failed';end if;
+ denied:=false;begin perform public.save_simple_survey(a,doc,false,2);exception when others then denied:=true;end;
+ if not denied then raise exception 'Submitted report changed';end if;
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);
+ select * into f from public.review_simple_survey(f.id,'correction_requested','Please confirm venue capacity',2);
+ perform set_config('request.jwt.claim.sub',u::text,true);
+ select * into f from public.save_simple_survey(a,doc,true,3);
+ perform set_config('request.jwt.claim.sub',admin_id::text,true);
+ select * into f from public.review_simple_survey(f.id,'reviewed','Confirmed',4);
+ if f.revision<>5 or f.status<>'reviewed' then raise exception 'Final review failed';end if;
+ if (select count(*) from public.simple_survey_versions where form_id=f.id)<>5 then raise exception 'History incomplete';end if;
+ if has_table_privilege('authenticated','public.simple_survey_forms','UPDATE') then raise exception 'Direct writes bypass RPC';end if;
+ if has_table_privilege('authenticated','public.simple_survey_versions','DELETE') then raise exception 'History is mutable';end if;
+ perform set_config('test.other_user',other_u::text,true);
+ perform set_config('test.owner_user',u::text,true);
+ perform set_config('test.form_id',f.id::text,true);
+end $$;
+set local role authenticated;
+select set_config('request.jwt.claim.sub',current_setting('test.other_user'),true);
+do $$ begin
+ if exists(select 1 from public.simple_survey_forms where id=current_setting('test.form_id')::uuid) then raise exception 'RLS leaked another survey';end if;
+ if exists(select 1 from public.simple_survey_versions where form_id=current_setting('test.form_id')::uuid) then raise exception 'RLS leaked history';end if;
+ if exists(select 1 from public.profiles where id=current_setting('test.owner_user')::uuid) then raise exception 'RLS leaked profile';end if;
+end $$;
+select set_config('request.jwt.claim.sub',current_setting('test.owner_user'),true);
+do $$ begin
+ if not exists(select 1 from public.simple_survey_forms where id=current_setting('test.form_id')::uuid) then raise exception 'Owner cannot read survey';end if;
+ if (select count(*) from public.simple_survey_versions where form_id=current_setting('test.form_id')::uuid)<>5 then raise exception 'Owner cannot read history';end if;
+end $$;
+rollback;

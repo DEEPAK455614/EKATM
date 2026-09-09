@@ -15,7 +15,9 @@ export type StrategicAction={id:string;issue:string;action:string;responsible:st
 export type CommitteeMember={id:string;nameDesignation:string;institution:string;mobileEmail:string;cityState:string;cityDistrict:string;districtAddress:string};
 export type RouteDay={id:string;dayNo:number;date:string;from:string;to:string;distance:string;intermediatePlaces:string;haltVenue:string;activities:string;remarks:string};
 
+export type SurveyAttachment={id:string;path:string;name:string;size:number;type:string;dayId:string;uploadedAt:string};
 export type SimpleSurveyData={
+  attachments?:SurveyAttachment[];
   meta:{state:string;surveyPeriod:string;teamCoordinator:string;date:string;team:TeamMember[]};
   stateProfile:{totalPopulation:string;totalArea:string;totalDistricts:string;municipalCorpMandals:string;municipalitiesTehsils:string;gramPanchayats:string;districts:DistrictFeature[]};
   dailyLogs:DailyLog[];

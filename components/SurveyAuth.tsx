@@ -1,0 +1,31 @@
+'use client';
+import {useState} from 'react';
+import {supabase,supabaseConfigured} from '@/lib/supabase';
+import s from './SimpleSurvey.module.css';
+
+export function authMessage(error:any){
+ const code=error?.code||'';
+ if(code==='email_not_confirmed')return 'Please confirm your email before signing in. You can resend the confirmation below.';
+ if(code==='invalid_credentials')return 'Email or password is incorrect. Check your details or use Forgot password.';
+ if(code.includes('rate_limit'))return 'Too many attempts. Please wait a few minutes before trying again.';
+ if(code==='unexpected_failure'||/database error/i.test(error?.message||''))return 'Account creation could not finish. Please try again or contact the survey administrator.';
+ if(/fetch|network/i.test(error?.message||''))return 'Cannot reach the server. Check your connection and try again.';
+ return error?.message||'Could not continue. Please try again.';
+}
+export default function SurveyAuth({onReady,admin=false}:{onReady:(u:any)=>void;admin?:boolean}){
+ const [mode,setMode]=useState<'login'|'signup'|'reset'>('login');
+ const [name,setName]=useState(''),[phone,setPhone]=useState(''),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[confirm,setConfirm]=useState(''),[show,setShow]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
+ const go=async(event:React.FormEvent)=>{event.preventDefault();setBusy(true);setMessage('');try{
+  if(!supabaseConfigured)throw new Error('The survey service is not configured. Please contact the administrator.');
+  const address=email.trim().toLowerCase();
+  if(mode==='reset'){const {error}=await supabase.auth.resetPasswordForEmail(address,{redirectTo:window.location.origin+'/auth/reset'});if(error)throw error;setMessage('If this email has an account, a password reset link will arrive shortly. Check your spam folder too.');return;}
+  if(mode==='signup'){
+   if(password!==confirm)throw new Error('Passwords do not match.');
+   const {data,error}=await supabase.auth.signUp({email:address,password,options:{emailRedirectTo:window.location.origin+'/field',data:{full_name:name.trim(),phone:phone.trim()}}});
+   if(error)throw error;
+   if(data.session&&data.user)onReady(data.user);else setMessage('Check your email to confirm your account, then sign in. If you already registered, sign in or reset your password. Your administrator will allocate your State.');
+  }else{const {data,error}=await supabase.auth.signInWithPassword({email:address,password});if(error)throw error;if(data.user)onReady(data.user);}
+ }catch(error){setMessage(authMessage(error));}finally{setBusy(false);}};
+ const resend=async()=>{if(!email.trim()){setMessage('Enter your email first.');return;}setBusy(true);try{const {error}=await supabase.auth.resend({type:'signup',email:email.trim().toLowerCase(),options:{emailRedirectTo:window.location.origin+'/field'}});if(error)throw error;setMessage('If confirmation is pending, a new link will arrive in your email.');}catch(error){setMessage(authMessage(error));}finally{setBusy(false);}};
+ return <div className={s.auth}><section className={s.authStory}><div className={s.om}>ॐ</div><div className={s.kicker}>EKATMA YATRA · {admin?'SURVEY ADMIN':'STATE SURVEY'}</div><h1>{admin?'Every State survey. One control panel.':'Your daily work. One complete survey.'}</h1><p>{admin?'Allocate States, follow your team’s progress, review every detail and download their reports.':'Fill the official survey step by step. Save your daily findings and review the complete report before submitting.'}</p><div className={s.authPoints}><span>Official survey format</span><span>Private assigned surveys</span><span>Daily history & reports</span></div></section><section className={s.authPanel}><form className={s.loginCard} onSubmit={go}><div className={s.logo}>EK</div><h2>{mode==='signup'?'Create Surveyor Account':mode==='reset'?'Reset your password':admin?'Admin Sign In':'Surveyor Sign In'}</h2><p>{mode==='signup'?'Register with your own email. Your administrator will assign your State.':mode==='reset'?'We will email you a secure reset link.':'Welcome back. Continue with your email and password.'}</p>{mode==='signup'&&<><label className={s.field}><span>Full name</span><input required autoComplete="name" value={name} onChange={e=>setName(e.target.value)} maxLength={120}/></label><label className={s.field}><span>Phone (optional)</span><input type="tel" autoComplete="tel" value={phone} onChange={e=>setPhone(e.target.value)} maxLength={30}/></label></>}<label className={s.field}><span>Email</span><input required type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)}/></label>{mode!=='reset'&&<><label className={s.field}><span>Password</span><input required minLength={mode==='signup'?8:1} type={show?'text':'password'} autoComplete={mode==='signup'?'new-password':'current-password'} value={password} onChange={e=>setPassword(e.target.value)}/></label>{mode==='signup'&&<label className={s.field}><span>Confirm password</span><input required minLength={8} type={show?'text':'password'} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)}/></label>}<label style={{display:'flex',gap:8,margin:'12px 0'}}><input type="checkbox" checked={show} onChange={e=>setShow(e.target.checked)}/>Show password</label></>}{message&&<div role="status" aria-live="polite" className={s.message}>{message}</div>}<button className={s.primaryWide} disabled={busy}>{busy?'Please wait…':mode==='signup'?'Create Account':mode==='reset'?'Send Reset Link':'Sign In'}</button>{mode==='login'&&<button type="button" className={s.linkBtn} disabled={busy} onClick={()=>{setMode('reset');setMessage('');}}>Forgot password?</button>}<button type="button" className={s.linkBtn} disabled={busy} onClick={()=>{setMode(mode==='login'&&!admin?'signup':'login');setMessage('');}}>{mode==='login'&&!admin?'New surveyor? Create an account':'Back to sign in'}</button>{mode!=='reset'&&<button type="button" className={s.linkBtn} disabled={busy} onClick={resend}>Resend confirmation email</button>}<a className={s.linkBtn} href={admin?'/field':'/admin'}>{admin?'Surveyor portal':'Administrator sign in'}</a></form></section></div>;
+}
