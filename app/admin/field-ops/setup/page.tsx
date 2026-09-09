@@ -1,2 +1,2 @@
-import SurveyTeamSetup from '@/components/SurveyTeamSetup';
-export default function SurveyTeamSetupPage(){return <SurveyTeamSetup/>}
+import {redirect} from 'next/navigation';
+export default function SurveyTeamSetupPage(){redirect('/admin')}
