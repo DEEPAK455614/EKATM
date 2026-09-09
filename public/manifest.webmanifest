@@ -1,8 +1,8 @@
 {
   "name":"EKATM — Yatra Survey & Intelligence",
   "short_name":"EKATM",
-  "description":"Survey • CRM • Route • Coordination • AI",
-  "start_url":"/survey",
+  "description":"Field Survey • CRM • Route • Coordination • Intelligence",
+  "start_url":"/field",
   "display":"standalone",
   "background_color":"#f4efe6",
   "theme_color":"#8f4315",
