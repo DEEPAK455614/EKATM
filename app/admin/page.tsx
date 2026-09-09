@@ -1,2 +1,2 @@
-import SurveyAdmin from '@/components/SurveyAdmin';
-export default function AdminPage(){return <SurveyAdmin/>}
+import SimpleSurveyAdmin from '@/components/SimpleSurveyAdmin';
+export default function AdminPage(){return <SimpleSurveyAdmin/>}
