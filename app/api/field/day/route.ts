@@ -17,7 +17,7 @@ export async function POST(req:NextRequest){
     const day=(await req.json()) as FieldDayDraft;
     if(!day?.id||!day?.projectId||!day?.date)return NextResponse.json({error:'day_project_date_required'},{status:400});
     const {db,user}=auth;
-    const {data:project,error:projectError}=await db.from('survey_projects').select('id,state_name').eq('id',day.projectId).maybeSingle();
+    const {data:project,error:projectError}=await db.from('survey_projects').select('id,state_name,status').eq('id',day.projectId).maybeSingle();
     if(projectError||!project)return NextResponse.json({error:'survey_project_not_accessible'},{status:403});
 
     const now=new Date().toISOString();
@@ -32,7 +32,7 @@ export async function POST(req:NextRequest){
     };
     const {error:dailyError}=await db.from('daily_logs').upsert(daily,{onConflict:'id'});if(dailyError)throw dailyError;
 
-    const submission={client_submission_id:`field-day:${day.id}`,shankhdoot_id:user.id,form_type:'ekatma_daily_survey',payload:day,latitude:day.latitude??null,longitude:day.longitude??null,accuracy_meters:day.accuracyMeters??null,captured_at:day.startedAt||now,submitted_at:now,sync_status:'synced',local_record_key:day.id,verification_status:day.status==='submitted'?'pending':'draft'};
+    const submission={client_submission_id:`field-day:${day.id}`,survey_project_id:day.projectId,shankhdoot_id:user.id,form_type:'ekatma_daily_survey',payload:day,latitude:day.latitude??null,longitude:day.longitude??null,accuracy_meters:day.accuracyMeters??null,captured_at:day.startedAt||now,submitted_at:now,sync_status:'synced',local_record_key:day.id,verification_status:day.status==='submitted'?'pending':'draft'};
     const {error:submissionError}=await db.from('field_submissions').upsert(submission,{onConflict:'client_submission_id'});if(submissionError)throw submissionError;
 
     // Replace only records owned by this single daily report. Other teams/days are untouched.
@@ -72,6 +72,12 @@ export async function POST(req:NextRequest){
     }
     if(day.festivals?.length){const {error}=await db.from('events_festivals').insert(day.festivals.map(x=>({id:x.id,survey_project_id:day.projectId,daily_log_id:day.id,event_festival:x.name||'Unnamed',start_date:x.startDate||null,end_date:x.endDate||null,duration_text:text(x.duration),location:text(x.location),expected_number:num(x.expectedNumber),relevance_to_yatra_planning:text(x.relevance),coordination_notes:text(x.coordinationNotes),key_observations_scheduling:text(x.observations)})));if(error)throw error}
     if(day.strategicActions?.length){const {error}=await db.from('strategic_actions').insert(day.strategicActions.map((x,i)=>({id:x.id,survey_project_id:day.projectId,daily_log_id:day.id,priority_key_issue:x.issue||'Unspecified issue',proposed_action:text(x.action),responsible_person_org:text(x.responsible),timeline:text(x.timeline),status:x.status||'open',remarks:text(x.remarks),sort_order:i})));if(error)throw error}
+
+    if(day.status==='submitted'){
+      await db.from('survey_report_snapshots').delete().eq('daily_log_id',day.id).eq('report_type','daily');
+      const {error:reportError}=await db.from('survey_report_snapshots').insert({survey_project_id:day.projectId,daily_log_id:day.id,report_type:'daily',report_date:day.date,payload:day,generated_by:user.id,version:1});if(reportError)throw reportError;
+      const {error:projectStatusError}=await db.from('survey_projects').update({status:'in_progress',updated_at:now}).eq('id',day.projectId).in('status',['draft','assigned']);if(projectStatusError)throw projectStatusError;
+    }
 
     return NextResponse.json({ok:true,dailyLogId:day.id,status:day.status,syncedAt:now});
   }catch(e:any){console.error('field_day_sync_failed',e?.message||e);return NextResponse.json({error:'field_day_sync_failed',detail:e?.message||'unknown_error'},{status:500})}
