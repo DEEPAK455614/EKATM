@@ -1,2 +1,2 @@
-import SurveyAdmin from '@/components/SurveyAdmin';
-export default function FieldOpsPage(){return <SurveyAdmin/>}
+import {redirect} from 'next/navigation';
+export default function FieldOpsPage(){redirect('/admin')}
