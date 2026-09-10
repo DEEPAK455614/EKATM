@@ -37,3 +37,15 @@ describe('Survey saving',()=>{
   api.auth.getSession.mockResolvedValue({data:{session:{user}}});render(<Admin/>);await screen.findByText('This account is not authorized for the Admin Control Panel.');expect(screen.queryByText('Assign a State to a Surveyor')).toBeNull();
  });
 });
+
+
+describe('Submitted survey report access',()=>{
+ it('keeps report viewing enabled when survey fields are locked',async()=>{
+  const doc=blankSimpleSurvey('Rajasthan');
+  api.auth.getSession.mockResolvedValue({data:{session:{user}}});
+  api.from.mockImplementation((table:string)=>query(table==='simple_survey_assignments'?[assignment]:table==='simple_survey_forms'?[{id:'form-one',assignment_id:assignment.id,surveyor_id:user.id,state_name:'Rajasthan',revision:2,status:'submitted',form_data:doc,updated_at:'2026-09-10'}]:[]));
+  render(<Portal/>);fireEvent.click(await screen.findByRole('button',{name:/Rajasthan/}));
+  const view=await screen.findByRole('button',{name:'View detailed report'});expect(view.closest('fieldset[disabled]')).toBeNull();
+  fireEvent.click(view);expect(screen.getByRole('dialog',{name:'Detailed survey report'})).toBeTruthy();
+ });
+});
