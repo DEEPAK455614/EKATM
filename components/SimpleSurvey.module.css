@@ -49,3 +49,7 @@
  .status{font-size:11px;white-space:normal}.adminTable .linkBtn{min-height:32px;justify-content:flex-start}
 }
 @media(max-width:380px){.headerActions .online{display:none}.headerActions .userPill{max-width:80px}.bottomBar>.secondary{flex-basis:100%}}
+
+/* Field survey controls remain legible and easy to tap outdoors. */
+.field input,.field select,.field textarea{font-size:16px;min-height:48px}.field textarea{min-height:110px}.field>span{font-size:15px;font-weight:600}.bigRepeat h3{font-size:22px}.miniPanel h4{font-size:18px;margin:0 0 14px}.addBtn,.secondary,.primary,.removeBtn{min-height:44px}.field input[type=file]{width:100%;max-width:100%;padding:10px 4px}.field input[readonly]{background:#f4f0e8}.bigRepeatHead{gap:12px;flex-wrap:wrap}
+@media(max-width:640px){.grid2,.grid3,.grid4,.grid5{grid-template-columns:minmax(0,1fr)}.bigRepeat{padding:16px 12px}.miniPanel{padding:14px 10px}.bigRepeat h3{font-size:21px}.field{min-width:0}}

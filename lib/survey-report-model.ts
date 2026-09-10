@@ -14,12 +14,13 @@ export function reportSections(d:SimpleSurveyData,meta:ReportMeta={},dayId?:stri
  if(!dayId)sections.push(
  {title:'05–08 · Organizations, Contacts, Participation & Logistics',value:d.organizations},
  {title:'09 · Rath Yatra Proposed Plan',value:d.rathPlans},
- {title:'10 · Events & Festivals',value:{events:d.events,observations:d.eventObservations}},
+ {title:'10 · Events & Festivals During the Yatra Period',value:{events:d.events,observations:d.eventObservations}},
  {title:'11 · Strategic Planning & Action',value:{actions:d.strategicActions,importantDecisions:d.importantDecisions}},
  {title:'12 · Proposed National Committee',value:d.committees.national},
  {title:'13 · Proposed State Committee',value:d.committees.state},
  {title:'14 · Proposed District Committee',value:d.committees.district},
- {title:'15–16 · Final Route Plan',value:[...d.finalRoute].sort((a,b)=>a.dayNo-b.dayNo)});
+ {title:'Proposed Local Committee',value:d.committees.local||[]},
+ {title:'15–16 · Final Proposed Route Plan',value:[...d.finalRoute].sort((a,b)=>a.dayNo-b.dayNo)});
  sections.push({title:'Supporting documents and evidence',value:attachments});
  return sections;
 }

@@ -1,21 +1,21 @@
 export type TeamMember={id:string;name:string;role:string;contact:string;area:string;remarks:string};
 export type DistrictFeature={id:string;districtName:string;keyFeatures:string};
-export type DailyPerson={id:string;name:string;discussion:boolean};
-export type DailyOrg={id:string;name:string;discussion:boolean};
+export type DailyPerson={id:string;name:string;discussion:boolean;mobile?:string;organizationId?:string;organizationName?:string;otherContact?:string;remarks?:string};
+export type DailyOrg={id:string;name:string;discussion:boolean;mobile?:string;organizationId?:string;organizationName?:string;otherContact?:string;remarks?:string};
 export type DailyLog={id:string;date:string;dayNo:number;from:string;to:string;distance:string;persons:DailyPerson[];organizations:DailyOrg[];otherPlaces:string;completedTasks:string;findings:string};
-export type ContactPerson={id:string;name:string;designation:string;contact:string;organizationRole:string;remarks:string};
-export type RathJoining={id:string;name:string;from:string;to:string;joinPoint:string;originalPlanRemarks:string};
+export type ContactPerson={id:string;name:string;designation:string;contact:string;organizationRole:string;remarks:string;otherContact?:string};
+export type RathJoining={id:string;name:string;from:string;to:string;joinPoint:string;originalPlanRemarks:string;expectedPeople?:string;proposedRoute?:string;haltingPoints?:string};
 export type VenueBlock={venueName:string;address:string;expectedNumber:string;capacity:string;parkingLogistics:string;localSupport:string;remarks:string};
-export type NightHalt={reason:string;accommodationAvailability:string;distanceFromRoute:string;accommodationType:string;parking:string;capacity:string;foodArrangements:string;availableFacilities:string;otherConsiderations:string};
-export type OrganizationRecord={id:string;name:string;categories:string[];otherCategory:string;fullAddress:string;city:string;district:string;state:string;phone:string;headRepresentative:string;websiteEmail:string;otherDetails:string;contacts:ContactPerson[];participation:string[];mahaRath:{proposedLocation:string;expectedParticipation:string;venueDetails:string;parkingAvailability:string;accommodation:string;localCoordination:string;otherLogistics:string;remarks:string};expectedJoiningCount:string;rathJoinings:RathJoining[];mahasabha:VenueBlock;sabha:VenueBlock;nightHalt:NightHalt;notInRoute:boolean;notInRouteReason:string;supportAreas:string[];otherSupport:string;supportRemarks:string};
-export type RathStop={id:string;location:string;arrivalTime:string;haltDuration:string;facilities:string;remarks:string};
-export type RathPlan={id:string;name:string;route:string[];keyActivities:string;arrivalTime:string;arrivalLocation:string;vehicleCount:string;vehicleDetails:string;expectedNumber:string;stops:RathStop[];accommodationCapacity:string;parkingCapacity:string;otherFacilities:string;remarks:string};
-export type Festival={id:string;name:string;dateDuration:string;location:string;expectedNumber:string;relevance:string;coordinationNotes:string};
-export type StrategicAction={id:string;issue:string;action:string;responsible:string;timeline:string;status:string;remarks:string};
-export type CommitteeMember={id:string;nameDesignation:string;institution:string;mobileEmail:string;cityState:string;cityDistrict:string;districtAddress:string};
-export type RouteDay={id:string;dayNo:number;date:string;from:string;to:string;distance:string;intermediatePlaces:string;haltVenue:string;activities:string;remarks:string};
+export type NightHalt={location?:string;contactPerson?:string;mobile?:string;reason:string;accommodationAvailability:string;distanceFromRoute:string;accommodationType:string;parking:string;capacity:string;foodArrangements:string;availableFacilities:string;otherConsiderations:string};
+export type OrganizationRecord={representativeMobile?:string;gatheringType?:'Mahasabha'|'Sabha'|'None';id:string;name:string;categories:string[];otherCategory:string;fullAddress:string;city:string;district:string;state:string;phone:string;headRepresentative:string;websiteEmail:string;otherDetails:string;contacts:ContactPerson[];participation:string[];mahaRath:{proposedLocation:string;expectedParticipation:string;venueDetails:string;parkingAvailability:string;accommodation:string;localCoordination:string;otherLogistics:string;remarks:string};expectedJoiningCount:string;rathJoinings:RathJoining[];mahasabha:VenueBlock;sabha:VenueBlock;nightHalt:NightHalt;notInRoute:boolean;notInRouteReason:string;supportAreas:string[];otherSupport:string;supportRemarks:string};
+export type RathStop={importance?:string;contact?:string;estimatedCrowd?:string;gps?:string;id:string;location:string;arrivalTime:string;haltDuration:string;facilities:string;remarks:string};
+export type RathPlan={description?:string;id:string;name:string;route:string[];keyActivities:string;arrivalTime:string;arrivalLocation:string;vehicleCount:string;vehicleDetails:string;expectedNumber:string;stops:RathStop[];accommodationCapacity:string;parkingCapacity:string;otherFacilities:string;remarks:string};
+export type Festival={opportunity?:string;remarks?:string;id:string;name:string;dateDuration:string;location:string;expectedNumber:string;relevance:string;coordinationNotes:string};
+export type StrategicAction={priority?:string;nextStep?:string;id:string;issue:string;action:string;responsible:string;timeline:string;status:string;remarks:string};
+export type CommitteeMember={role?:string;remarks?:string;id:string;nameDesignation:string;institution:string;mobileEmail:string;cityState:string;cityDistrict:string;districtAddress:string};
+export type RouteDay={textRoute?:string;majorHalt?:string;nightHalt?:string;gatheringPoints?:string;recommendation?:string;id:string;dayNo:number;date:string;from:string;to:string;distance:string;intermediatePlaces:string;haltVenue:string;activities:string;remarks:string};
 
-export type SurveyAttachment={id:string;path:string;name:string;size:number;type:string;dayId:string;uploadedAt:string};
+export type SurveyAttachment={id:string;path:string;name:string;size:number;type:string;dayId:string;uploadedAt:string;entityId?:string;entityLabel?:string;kind?:'photo'|'map'|'document'};
 export type SimpleSurveyData={
   attachments?:SurveyAttachment[];
   meta:{state:string;surveyPeriod:string;teamCoordinator:string;date:string;team:TeamMember[]};
@@ -27,7 +27,7 @@ export type SimpleSurveyData={
   eventObservations:string;
   strategicActions:StrategicAction[];
   importantDecisions:string;
-  committees:{national:CommitteeMember[];state:CommitteeMember[];district:CommitteeMember[]};
+  committees:{national:CommitteeMember[];state:CommitteeMember[];district:CommitteeMember[];local?:CommitteeMember[]};
   finalRoute:RouteDay[];
 };
 
@@ -58,7 +58,7 @@ export const makers={
 export function blankSimpleSurvey(state=''):SimpleSurveyData{return {
  meta:{state,surveyPeriod:'',teamCoordinator:'',date:'',team:[]},
  stateProfile:{totalPopulation:'',totalArea:'',totalDistricts:'',municipalCorpMandals:'',municipalitiesTehsils:'',gramPanchayats:'',districts:[]},
- dailyLogs:[],organizations:[],rathPlans:[],events:[],eventObservations:'',strategicActions:[],importantDecisions:'',
+ dailyLogs:[],organizations:[makers.organization(state)],rathPlans:[],events:[],eventObservations:'',strategicActions:[],importantDecisions:'',
  committees:{national:[],state:[],district:[]},finalRoute:[]
 }}
 
@@ -66,3 +66,12 @@ export function surveyCompletion(d:SimpleSurveyData){
  const checks=[d.meta.state,d.meta.teamCoordinator,d.stateProfile.totalDistricts,d.dailyLogs.length,d.organizations.length,d.rathPlans.length,d.events.length,d.strategicActions.length,d.finalRoute.length];
  return Math.round(checks.filter(Boolean).length/checks.length*100);
 }
+// Additive normalization keeps old records and offline drafts readable. Never discard hidden legacy details.
+export function normalizeSurvey(value:SimpleSurveyData):SimpleSurveyData {
+ const base=blankSimpleSurvey(value.meta?.state||'');
+ return {...base,...value,organizations:value.organizations?.length?value.organizations.map(o=>({...makers.organization(value.meta.state),...o,state:value.meta.state,nightHalt:{...makers.night(),...o.nightHalt},mahasabha:{...makers.venue(),...o.mahasabha},sabha:{...makers.venue(),...o.sabha}})):base.organizations,committees:{...base.committees,...value.committees,local:value.committees?.local||[]}};
+}
+export function gatheringType(o:OrganizationRecord):'Mahasabha'|'Sabha'|'None' {
+ return o.gatheringType||(Object.values(o.mahasabha||{}).some(Boolean)?'Mahasabha':Object.values(o.sabha||{}).some(Boolean)?'Sabha':'None');
+}
+export const statusLabel=(status:string)=>({draft:'Draft',submitted:'Submitted',under_review:'Under Review',reviewed:'Approved',correction_requested:'Needs Revision'}[status]||status.replaceAll('_',' '));

@@ -1,4 +1,4 @@
-const CACHE='ekatm-survey-shell-v5';
+const CACHE='ekatm-survey-shell-v6';
 self.addEventListener('install',event=>{event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(['/field','/icon.svg','/manifest.webmanifest']);await self.skipWaiting();})());});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{for(const key of await caches.keys()){if(key.startsWith('ekatm-')&&key!==CACHE)await caches.delete(key);}await self.clients.claim();})());});
 self.addEventListener('fetch',event=>{
