@@ -1,31 +1,28 @@
 'use client';
 import type {SimpleSurveyData} from './simple-survey';
 
-export async function downloadSimpleSurveyPdf(d:SimpleSurveyData,fileName?:string){
-  const {jsPDF}=await import('jspdf');
-  const doc=new jsPDF({unit:'pt',format:'a4'});const left=44,max=500;let y=52;
-  const add=(text:string,size=10,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);const lines=doc.splitTextToSize(text||'—',max);for(const line of lines){if(y+size+4>790){doc.addPage();y=52}doc.text(line,left,y);y+=size+4}y+=7};
-  const section=(t:string)=>{y+=7;add(t,14,true)};
-  add('EKATMA YATRA — COMPREHENSIVE SURVEY REPORT',17,true);add(`State: ${d.meta.state||'—'}  |  Survey Period: ${d.meta.surveyPeriod||'—'}  |  Coordinator: ${d.meta.teamCoordinator||'—'}  |  Date: ${d.meta.date||'—'}`);
-  section('02 | FIELD DEPLOYMENT — State Survey Team');d.meta.team.forEach((x,i)=>add(`${i+1}. ${x.name} | ${x.role} | ${x.contact} | Area: ${x.area} | ${x.remarks}`));
-  section('03 | GEOGRAPHICAL & ADMINISTRATIVE PROFILE — State at a Glance');add(`Total Population: ${d.stateProfile.totalPopulation||'—'} | Total Area (sq km): ${d.stateProfile.totalArea||'—'} | Total Districts: ${d.stateProfile.totalDistricts||'—'} | Municipal Corp./Mandals: ${d.stateProfile.municipalCorpMandals||'—'} | Municipalities/Tehsils: ${d.stateProfile.municipalitiesTehsils||'—'} | Gram Panchayats: ${d.stateProfile.gramPanchayats||'—'}`);d.stateProfile.districts.forEach(x=>add(`${x.districtName}: ${x.keyFeatures}`));
-  section('04 | DAILY ACTIVITY LOG');d.dailyLogs.forEach(x=>{add(`Day ${x.dayNo} — ${x.date||'—'} — ${x.from||'—'} → ${x.to||'—'} — ${x.distance||'—'} km`,11,true);add(`Persons: ${x.persons.map(p=>`${p.name}${p.discussion?' ✓':''}`).join(', ')||'—'}`);add(`Organizations: ${x.organizations.map(o=>`${o.name}${o.discussion?' ✓':''}`).join(', ')||'—'}`);add(`Other Covered Places: ${x.otherPlaces||'—'}\nCompleted Tasks / Activities: ${x.completedTasks||'—'}\nKey Survey Findings: ${x.findings||'—'}`)});
-  section('05–08 | ORGANIZATION, CONTACT, PARTICIPATION, VENUE & SUPPORT');d.organizations.forEach((o,i)=>{add(`${i+1}. ${o.name||'Unnamed Organization'} — ${[...o.categories,o.otherCategory].filter(Boolean).join(', ')||'—'}`,11,true);add(`${o.fullAddress||'—'}, ${o.city||'—'}, ${o.district||'—'}, ${o.state||d.meta.state||'—'} | Phone: ${o.phone||'—'} | Head/Representative: ${o.headRepresentative||'—'} | Website/Email: ${o.websiteEmail||'—'}`);if(o.contacts.length)add(`Contacted Persons: ${o.contacts.map(c=>`${c.name} (${c.designation}) ${c.contact} ${c.organizationRole} | Remarks: ${c.remarks}`).join('; ')}`);add(`Participation: ${o.participation.join(', ')||'—'}`);add(`Maha Rath — Proposed Location: ${o.mahaRath.proposedLocation||'—'} | Expected: ${o.mahaRath.expectedParticipation||'—'} | Venue: ${o.mahaRath.venueDetails||'—'} | Parking: ${o.mahaRath.parkingAvailability||'—'} | Accommodation: ${o.mahaRath.accommodation||'—'} | Local Coordination: ${o.mahaRath.localCoordination||'—'} | Logistics: ${o.mahaRath.otherLogistics||'—'} | Remarks: ${o.mahaRath.remarks||'—'}`);if(o.rathJoinings.length)add(`Rath Yatras joining here (expected ${o.expectedJoiningCount||'—'}): ${o.rathJoinings.map(r=>`${r.name}: ${r.from} → ${r.to}; joins at ${r.joinPoint}; ${r.originalPlanRemarks}`).join(' | ')}`);add(`Mahasabha: ${o.mahasabha.venueName||'—'} | ${o.mahasabha.address||'—'} | Expected ${o.mahasabha.expectedNumber||'—'} | Capacity ${o.mahasabha.capacity||'—'} | Parking/Logistics: ${o.mahasabha.parkingLogistics||'—'} | Local Support: ${o.mahasabha.localSupport||'—'} | ${o.mahasabha.remarks||'—'}`);add(`Sabha: ${o.sabha.venueName||'—'} | ${o.sabha.address||'—'} | Expected ${o.sabha.expectedNumber||'—'} | Capacity: ${o.sabha.capacity||'—'} | Parking/Logistics: ${o.sabha.parkingLogistics||'—'} | Local Support: ${o.sabha.localSupport||'—'} | ${o.sabha.remarks||'—'}`);add(`Night Halt: Reason ${o.nightHalt.reason||'—'} | Accommodation ${o.nightHalt.accommodationAvailability||'—'} | Distance ${o.nightHalt.distanceFromRoute||'—'} | Type ${o.nightHalt.accommodationType||'—'} | Parking ${o.nightHalt.parking||'—'} | Capacity ${o.nightHalt.capacity||'—'} | Food ${o.nightHalt.foodArrangements||'—'} | Facilities ${o.nightHalt.availableFacilities||'—'} | Other ${o.nightHalt.otherConsiderations||'—'}`);add(`Not in route: ${o.notInRoute?'Yes':'No'} ${o.notInRouteReason||''} | Support Areas: ${o.supportAreas.join(', ')||'—'} ${o.otherSupport||''} | Support Remarks: ${o.supportRemarks||'—'} | Other Details: ${o.otherDetails||'—'}`)});
-  section('09 | RATH YATRA — PROPOSED PLAN');d.rathPlans.forEach((r,i)=>{add(`${i+1}. ${r.name||'Unnamed Rath Yatra'} — ${r.route.filter(Boolean).join(' → ')||'—'}`,11,true);add(`Key Activities: ${r.keyActivities||'—'} | Arrival: ${r.arrivalTime||'—'} at ${r.arrivalLocation||'—'} | Vehicles: ${r.vehicleCount||'—'} ${r.vehicleDetails||''} | Expected Number: ${r.expectedNumber||'—'}`);r.stops.forEach((s,j)=>add(`Halt ${j+1}: ${s.location||'—'} | ${s.arrivalTime||'—'} | ${s.haltDuration||'—'} | Facilities: ${s.facilities||'—'} | ${s.remarks||'—'}`));add(`Accommodation Capacity: ${r.accommodationCapacity||'—'} | Parking Capacity: ${r.parkingCapacity||'—'} | Other Facilities: ${r.otherFacilities||'—'} | Remarks: ${r.remarks||'—'}`)});
-  section('10 | LOCAL CONTEXT — Events & Festivals');d.events.forEach((e,i)=>add(`${i+1}. ${e.name||'—'} | ${e.dateDuration||'—'} | ${e.location||'—'} | Expected ${e.expectedNumber||'—'} | Relevance: ${e.relevance||'—'} | Coordination: ${e.coordinationNotes||'—'}`));add(`Key Observations / Scheduling Considerations: ${d.eventObservations||'—'}`);
-  section('11 | ACTION PLAN — Strategic Planning & Action');d.strategicActions.forEach((a,i)=>add(`${i+1}. ${a.issue||'—'} → ${a.action||'—'} | Responsible: ${a.responsible||'—'} | Timeline: ${a.timeline||'—'} | Status: ${a.status||'—'} | ${a.remarks||'—'}`));add(`Important Decisions / Follow-up: ${d.importantDecisions||'—'}`);
-  section('12–14 | PROPOSED COMMITTEES');(['national','state','district'] as const).forEach(level=>{add(level.toUpperCase(),11,true);d.committees[level].forEach((m,i)=>add(`${i+1}. ${m.nameDesignation||'—'} | ${m.institution||'—'} | ${m.mobileEmail||'—'} | ${m.cityState||m.cityDistrict||m.districtAddress||'—'}`))});
-  section('15–16 | FINAL ROUTE SUMMARY — Proposed Route Plan');[...d.finalRoute].sort((a,b)=>a.dayNo-b.dayNo).forEach(r=>add(`Day ${r.dayNo} ${r.date||'—'}: ${r.from||'—'} → ${r.to||'—'} | ${r.distance||'—'} km | Intermediate: ${r.intermediatePlaces||'—'} | Halt/Venue: ${r.haltVenue||'—'} | Activities: ${r.activities||'—'} | ${r.remarks||'—'}`));
-  if(d.attachments?.length){section('SUPPORTING DOCUMENTS');d.attachments.forEach(f=>add(`${f.name} | ${Math.ceil(f.size/1024)} KB | ${f.uploadedAt} | Private file available in the survey portal`));}
-  for(let page=1;page<=doc.getNumberOfPages();page++){doc.setPage(page);doc.setFontSize(8);doc.text(`EKATMA SURVEY | Page ${page} of ${doc.getNumberOfPages()}`,44,822);}
-  doc.save(fileName||`Ekatma_Yatra_Survey_${(d.meta.state||'Draft').replace(/\W+/g,'_')}.pdf`);
-}
+import {reportSections,reportLines,type ReportMeta} from './survey-report-model';
 
-export async function downloadDailySurveyPdf(d:SimpleSurveyData,dayId:string){
+async function createSurveyPdf(d:SimpleSurveyData,fileName:string,meta:ReportMeta={},dayId?:string){
+ const {jsPDF}=await import('jspdf');
+ const doc=new jsPDF({unit:'pt',format:'a4'});let y=52;
+ const add=(text:string,size=10,bold=false)=>{doc.setFont('helvetica',bold?'bold':'normal');doc.setFontSize(size);const lines=doc.splitTextToSize(text,500);for(const line of lines){if(y+size+4>785){doc.addPage();y=52;}doc.text(line,44,y);y+=size+5;}y+=7;};
+ add('EKATMA YATRA',20,true);
+ add(dayId?'DAILY ACTIVITY REPORT':'COMPREHENSIVE STATE SURVEY REPORT',13,true);
+ add(`State: ${d.meta.state||'Not recorded'}`);
+ add('Information recorded by the survey team. Unfilled fields are marked Not recorded. Supporting files remain private in the survey portal.');
+ const sections=reportSections(d,meta,dayId);
+ add('REPORT CONTENTS',13,true);sections.forEach((section,i)=>add(`${i+1}. ${section.title}`));
+ for(const section of sections){doc.addPage();y=52;add(section.title,15,true);for(const line of reportLines(section.value))add(line);}
+ for(let page=1;page<=doc.getNumberOfPages();page++){doc.setPage(page);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(`EKATMA SURVEY | Page ${page} of ${doc.getNumberOfPages()}`,44,822);}
+ doc.save(fileName);
+}
+export async function downloadSimpleSurveyPdf(d:SimpleSurveyData,fileName?:string,meta:ReportMeta={}){
+ await createSurveyPdf(d,fileName||`Ekatma_Yatra_Survey_${(d.meta.state||'Draft').replace(/\W+/g,'_')}.pdf`,meta);
+}
+export async function downloadDailySurveyPdf(d:SimpleSurveyData,dayId:string,meta:ReportMeta={}){
  const day=d.dailyLogs.find(x=>x.id===dayId);if(!day)return;
- const {blankSimpleSurvey}=await import('./simple-survey');
- const report=blankSimpleSurvey(d.meta.state);report.meta={...d.meta,date:day.date};report.dailyLogs=[day];
- await downloadSimpleSurveyPdf(report,`Ekatma_Day_${day.dayNo}_${day.date||'undated'}.pdf`);
+ await createSurveyPdf(d,`Ekatma_Day_${day.dayNo}_${day.date||'undated'}.pdf`,meta,dayId);
 }
 
 // Browser printing preserves Hindi and other Unicode scripts using the device's
